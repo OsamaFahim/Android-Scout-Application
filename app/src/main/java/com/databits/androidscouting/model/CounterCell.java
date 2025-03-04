@@ -3,8 +3,9 @@ package com.databits.androidscouting.model;
 import android.content.Context;
 import android.view.View;
 import android.widget.TextView;
-import com.travijuu.numberpicker.library.NumberPicker;
 import com.databits.androidscouting.R;
+// Use the travijuu NumberPicker, not android.widget.NumberPicker
+import com.travijuu.numberpicker.library.NumberPicker;
 
 public class CounterCell extends BaseCell {
 
@@ -13,23 +14,23 @@ public class CounterCell extends BaseCell {
     }
 
     @Override
-    public void bind(View itemView, Context context) {
+    protected void bindMainViews(View itemView, Context context) {
         TextView titleView = itemView.findViewById(R.id.counter_title);
         if (titleView != null) {
             titleView.setText(mTitle);
         }
-        NumberPicker picker = itemView.findViewById(R.id.number_counter_inside);
+        // Use the travijuu NumberPicker methods for version 1.0.7
+        NumberPicker picker = (NumberPicker) itemView.findViewById(R.id.number_counter_inside);
         if (picker != null && mParam != null) {
-            picker.setValue(mParam.getDefault());
-            picker.setMax(mParam.getMax());
             picker.setMin(mParam.getMin());
-            picker.setUnit(mParam.getUnit());
+            picker.setMax(mParam.getMax());
+            picker.setValue(mParam.getDefault());
         }
     }
 
     @Override
     public String exportData(View itemView) {
-        NumberPicker picker = itemView.findViewById(R.id.number_counter_inside);
+        NumberPicker picker = (NumberPicker) itemView.findViewById(R.id.number_counter_inside);
         return String.valueOf(picker.getValue());
     }
 

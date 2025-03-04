@@ -12,13 +12,13 @@ public class TitleCell extends BaseCell {
     }
 
     @Override
-    public void bind(View itemView, Context context) {
+    protected void bindMainViews(View itemView, Context context) {
         // Use the correct TextView ID from your layout.
         TextView titleView = itemView.findViewById(R.id.cell_title);
         if (titleView != null) {
             titleView.setText(mTitle);
         }
-        // Optionally bind additional data (like team/match info)
+        // Optionally, bind additional data (like team/match info) here.
     }
 
     @Override

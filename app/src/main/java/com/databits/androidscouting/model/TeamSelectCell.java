@@ -13,15 +13,14 @@ public class TeamSelectCell extends BaseCell {
     }
 
     @Override
-    public void bind(View itemView, Context context) {
+    protected void bindMainViews(View itemView, Context context) {
         // Bind the cell title. Adjust the ID to the one present in your TeamSelect layout.
         TextView titleView = itemView.findViewById(R.id.teamselect_title);
         if (titleView != null) {
             titleView.setText(mTitle);
         }
-        // Optionally, you can initialize the spinner here.
-        // For example, if you want to set an adapter using mParam.getEntryLabels()
-        // you could do so here.
+        // Optionally, initialize the spinner here.
+        // For example, set an adapter using mParam.getEntryLabels() if needed.
     }
 
     @Override

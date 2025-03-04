@@ -177,11 +177,11 @@ public class ScoutUtils {
     tables = provideTables(v);
     TextView title;
     switch (table_status) {
-      case NONE:
-        // (Your NONE case logic here, or leave as needed)
-        break;
+//      case NONE:
+//        // (Your NONE case logic here, or leave as needed)
+//        break;
       case AUTO:
-        constraintSet.connect(R.id.recycler_view_top, ConstraintSet.TOP, R.id.bot_center_table, ConstraintSet.BOTTOM, 0);
+        constraintSet.connect(R.id.recycler_view_top, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM, 0);
         constraintSet.setVisibility(R.id.recycler_view_bot, View.GONE);
         topParam.height = ViewGroup.LayoutParams.WRAP_CONTENT;
         for (int j = 3; j < 6; j++) {
@@ -196,7 +196,7 @@ public class ScoutUtils {
         }
         break;
       case TELEOP:
-        constraintSet.connect(R.id.recycler_view_top, ConstraintSet.TOP, R.id.bot_center_table, ConstraintSet.BOTTOM, 0);
+        constraintSet.connect(R.id.recycler_view_top, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM, 0);
         constraintSet.setVisibility(R.id.recycler_view_bot, View.GONE);
         topParam.height = ViewGroup.LayoutParams.WRAP_CONTENT;
         for (int j = 3; j < 6; j++) {
@@ -211,9 +211,9 @@ public class ScoutUtils {
         }
         break;
       case BOTH:
-        constraintSet.connect(R.id.recycler_view_top, ConstraintSet.TOP, R.id.center_table, ConstraintSet.BOTTOM, 0);
-        constraintSet.connect(R.id.recycler_view_bot, ConstraintSet.TOP, R.id.bot_center_table, ConstraintSet.BOTTOM, 0);
-        constraintSet.connect(R.id.inner_table, ConstraintSet.TOP, R.id.crowdScoutFragment, ConstraintSet.TOP, 0);
+        constraintSet.connect(R.id.recycler_view_top, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM, 0);
+        constraintSet.connect(R.id.recycler_view_top, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM, 0);
+        constraintSet.connect(R.id.recycler_view_top, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM, 0);
         constraintSet.setVisibility(R.id.recycler_view_top, View.VISIBLE);
         constraintSet.setVisibility(R.id.recycler_view_bot, View.VISIBLE);
         topParam.height = ViewGroup.LayoutParams.WRAP_CONTENT;
@@ -475,8 +475,8 @@ public class ScoutUtils {
         }
       });
     }
-    RecyclerView.ItemDecoration itemDecoration = new DividerItemDecoration(context, DividerItemDecoration.VERTICAL);
-    recyclerView.addItemDecoration(itemDecoration);
+    //RecyclerView.ItemDecoration itemDecoration = new DividerItemDecoration(context, DividerItemDecoration.VERTICAL);
+    //recyclerView.addItemDecoration(itemDecoration);
     recyclerView.setAdapter(adapter);
     recyclerView.getRecycledViewPool().setMaxRecycledViews(1, 0);
     return recyclerView;

@@ -2,6 +2,7 @@ package com.databits.androidscouting.model;
 
 import android.content.Context;
 import android.view.View;
+import android.util.Log;
 
 public class UnknownCell extends BaseCell {
 
@@ -10,9 +11,10 @@ public class UnknownCell extends BaseCell {
     }
 
     @Override
-    public void bind(View itemView, Context context) {
-        // Optionally, you can log or handle unknown cells here.
-        // For now, we leave it empty.
+    protected void bindMainViews(View itemView, Context context) {
+        // No UI binding is necessary for unknown cell types.
+        // Optionally, log that an unknown cell was encountered.
+        Log.w("UnknownCell", "Binding unknown cell: " + mTitle);
     }
 
     @Override

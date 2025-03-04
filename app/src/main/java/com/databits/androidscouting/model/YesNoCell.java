@@ -13,13 +13,14 @@ public class YesNoCell extends BaseCell {
     }
 
     @Override
-    public void bind(View itemView, Context context) {
-        // For example, set the title text in the YesNo card
+    protected void bindMainViews(View itemView, Context context) {
         TextView titleView = itemView.findViewById(R.id.yesno_title);
         if (titleView != null) {
             titleView.setText(mTitle);
         }
-        // Additional binding (e.g., setting up help balloon) can go here.
+        // Additional UI binding for segmented button group can be done here.
+        SegmentedButtonGroup group = itemView.findViewById(R.id.buttonGroup_yes_no);
+        // (Configure the group if necessary.)
     }
 
     @Override

@@ -14,7 +14,7 @@ public class TextCell extends BaseCell {
     }
 
     @Override
-    public void bind(View itemView, Context context) {
+    protected void bindMainViews(View itemView, Context context) {
         TextView titleView = itemView.findViewById(R.id.textbox_title);
         if (titleView != null) {
             titleView.setText(mTitle);

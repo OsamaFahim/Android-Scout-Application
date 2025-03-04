@@ -13,13 +13,13 @@ public class ListCell extends BaseCell {
     }
 
     @Override
-    public void bind(View itemView, Context context) {
+    protected void bindMainViews(View itemView, Context context) {
         TextView titleView = itemView.findViewById(R.id.list_title);
         if (titleView != null) {
             titleView.setText(mTitle);
         }
         // Set up spinner adapter using mParam.getEntryLabels() if needed.
-        // For example, you can create an ArrayAdapter with the list of entries.
+        // For example, create an ArrayAdapter with the list of entries and set it on the spinner.
     }
 
     @Override
