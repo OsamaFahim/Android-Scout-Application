@@ -16,7 +16,10 @@ public class CellFactory {
             return new TextCell(mCellId, mTitle, mParam);
         } else if ("Special".equals(type)) {
             return new SpecialCell(mCellId, mTitle, mParam);
+        } else if ("TeamSelect".equals(type)) {
+            return new TeamSelectCell(mCellId, mTitle, mParam);
         }
+
         return new UnknownCell(mCellId, mTitle, mParam);
     }
 }

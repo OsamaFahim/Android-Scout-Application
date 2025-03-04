@@ -1,7 +1,9 @@
 package com.databits.androidscouting.model;
 
+import android.content.Context;
 import android.view.View;
 import android.widget.Spinner;
+import android.widget.TextView;
 import com.databits.androidscouting.R;
 
 public class ListCell extends BaseCell {
@@ -11,8 +13,18 @@ public class ListCell extends BaseCell {
     }
 
     @Override
+    public void bind(View itemView, Context context) {
+        TextView titleView = itemView.findViewById(R.id.list_title);
+        if (titleView != null) {
+            titleView.setText(mTitle);
+        }
+        // Set up spinner adapter using mParam.getEntryLabels() if needed.
+        // For example, you can create an ArrayAdapter with the list of entries.
+    }
+
+    @Override
     public String exportData(View itemView) {
-        Spinner spinner = itemView.findViewWithTag("Spinner");
+        Spinner spinner = itemView.findViewById(R.id.spinner);
         return spinner.getSelectedItem().toString();
     }
 
