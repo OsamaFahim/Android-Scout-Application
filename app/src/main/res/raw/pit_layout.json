@@ -1,0 +1,107 @@
+{
+  "categories": {
+    "Auto": {
+      "TeamSelect": [
+        {
+          "mCellId": 1,
+          "mTitle": "Set the team",
+          "mType": "TeamSelect",
+          "mParam": {
+            "cellType": "TeamSelect",
+            "helpText": "Select the team your currently scouting",
+            "cellCategory": "Auto",
+            "helpPictureSelector": "None",
+            "helpTitle": "Default"
+          }
+        }
+      ],
+      "Segment": [
+        {
+          "mCellId": 3,
+          "mTitle": "Drivetrain used?",
+          "mType": "Segment",
+          "mParam": {
+            "cellSegmentLabels": [
+              "Tank",
+              "Swerve",
+              "Mecanum",
+              "Other"
+            ],
+            "cellSegments": 4,
+            "cellType": "Segment",
+            "helpText": "Default",
+            "cellCategory": "Auto",
+            "helpPictureSelector": "None",
+            "helpTitle": "If not in list do other and leave a comment"
+          }
+        },
+        {
+          "mCellId": 3,
+          "mTitle": "Coral Intake",
+          "mType": "Segment",
+          "mParam": {
+            "cellSegmentLabels": [
+              "None",
+              "Feeder",
+              "Ground",
+              "Both"
+            ],
+            "cellSegments": 4,
+            "cellType": "Segment",
+            "helpText": "Default",
+            "cellCategory": "Auto",
+            "helpPictureSelector": "None",
+            "helpTitle": "If not in list do other and leave a comment"
+          }
+        },
+        {
+          "mCellId": 3,
+          "mTitle": "Algae Intake",
+          "mType": "Segment",
+          "mParam": {
+            "cellSegmentLabels": [
+              "None",
+              "Reef",
+              "Ground",
+              "Both"
+            ],
+            "cellSegments": 4,
+            "cellType": "Segment",
+            "helpText": "Default",
+            "cellCategory": "Auto",
+            "helpPictureSelector": "None",
+            "helpTitle": "If not in list do other and leave a comment"
+          }
+        }
+      ],
+      "Text": [
+        {
+          "mCellId": 9,
+          "mTitle": "Auto routine Info",
+          "mType": "Text",
+          "mParam": {
+            "cellTextHidden": false,
+            "cellType": "Text",
+            "helpText": "Be Specific, More info is always better",
+            "cellCategory": "Auto",
+            "helpPictureSelector": "None",
+            "helpTitle": "Comments"
+          }
+        },
+        {
+          "mCellId": 10,
+          "mTitle": "Comments",
+          "mType": "Text",
+          "mParam": {
+            "cellTextHidden": false,
+            "cellType": "Text",
+            "helpText": "Be Specific, More info is always better",
+            "cellCategory": "Auto",
+            "helpPictureSelector": "None",
+            "helpTitle": "Comments"
+          }
+        }
+      ]
+    }
+  }
+}
