@@ -1,11 +1,12 @@
 package com.databits.androidscouting.util;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
-import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
+
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
@@ -19,170 +20,167 @@ import com.google.api.services.sheets.v4.model.AppendValuesResponse;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import com.preference.PowerPreference;
 import com.preference.Preference;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static com.databits.androidscouting.util.GoogleAuthActivity.REQUEST_ACCOUNT_PICKER;
 
-public class SheetsUpdateTask extends AsyncTask<Void, Void, AppendValuesResponse> {
-
+public class SheetsUpdateTask {
+  // Keep track of the last auth error
   public static UserRecoverableAuthIOException mLastError;
 
-  @SuppressLint("StaticFieldLeak")
   private final Context context;
-
+  private final Activity activity;
   private final Sheets sheetsService;
-
-  private static final String[] ACCOUNT_SCOPES = {SheetsScopes.SPREADSHEETS};
-
   private String spreadsheetId;
 
-  @SuppressLint("StaticFieldLeak")
-  private final Activity activity;
-
+  // Preferences for configuration and debug info
   Preference configPreference = PowerPreference.getFileByName("Config");
   Preference debugPreference = PowerPreference.getFileByName("Debug");
   Preference matchPreference = PowerPreference.getFileByName("Match");
 
-  MatchInfo matchInfo;
+  // Executor for background work and a handler for UI updates
+  private final ExecutorService executor;
+  private final Handler handler;
 
   public SheetsUpdateTask(Activity activity) {
-    this.context = activity.getBaseContext();
     this.activity = activity;
+    this.context = activity.getBaseContext();
+    this.handler = new Handler(Looper.getMainLooper());
+    this.executor = Executors.newSingleThreadExecutor();
 
-    // Initialize the match info object
-    matchInfo = new MatchInfo();
-
-    // Setup the Google Account Credential object
+    // Set up Google Account Credential
     GoogleAccountCredential credential = GoogleAccountCredential.usingOAuth2(
-            context, Arrays.asList(ACCOUNT_SCOPES))
-        .setBackOff(new ExponentialBackOff());
+                    context, Arrays.asList(SheetsScopes.SPREADSHEETS))
+            .setBackOff(new ExponentialBackOff());
+    String accountName = configPreference.getString("google_account_name", null);
+    credential.setSelectedAccountName(accountName);
+    Log.d("SheetsUpdateTaskRunner", "Selected Account Name: " + accountName);
 
-    // Check for a saved google account name to speed up the auth process
-    credential.setSelectedAccountName(configPreference.getString("google_account_name",
-        null));
-
-    // Build the sheets service to be used in the background
     HttpTransport transport = AndroidHttp.newCompatibleTransport();
     JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
-    sheetsService = new Sheets.Builder(
-        transport, jsonFactory, credential)
-        .setApplicationName("Android Scouter")
-        .build();
+    sheetsService = new Sheets.Builder(transport, jsonFactory, credential)
+            .setApplicationName("Android Scouter")
+            .build();
   }
 
-  @Override protected AppendValuesResponse doInBackground(Void... voids) {
-    List<List<String>> columnData = null;
-    switch (configPreference.getString("uploadMode")) {
-      case "Crowd":
-        columnData = new ArrayList<>(matchPreference.getObject("upload_data",
-            ArrayList.class, new ArrayList<>()));
-        break;
-      case "Pit":
-        columnData = new ArrayList<>(matchPreference.getObject("pit_upload_data",
-            ArrayList.class, new ArrayList<>()));
-        break;
-      case "Speciality":
-        columnData = new ArrayList<>(matchPreference.getObject("special_upload_data",
-            ArrayList.class, new ArrayList<>()));
-        break;
-    }
+  public void execute() {
+    // Retrieve the spreadsheet ID (pre-created in Google Sheets)
+    //spreadsheetId = configPreference.getString("workbook_id", "");
+    spreadsheetId = "1ksCFboY3RF0d6eCQHtH2bdrPWFHXZXnicNJGz6pXndM";
 
+    Log.d("SheetsUpdateTaskRunner", "Spreadsheet ID: " + spreadsheetId);
 
-    try {
-      // Sheet name and range to upload data to
-      String range = null;
+    // Determine the upload mode and log it
+    String uploadMode = configPreference.getString("uploadMode", "");
+    Log.d("SheetsUpdateTaskRunner", "Upload Mode: " + uploadMode);
 
-      switch (configPreference.getString("uploadMode")) {
-        case "Crowd":
-          range = configPreference.getString("Crowd_range","");
-          break;
-        case "Pit":
-          range = configPreference.getString("Pit_range","");
-          break;
-        case "Speciality":
-          range = configPreference.getString("Speciality_range","");
-          break;
-      }
+    // Execute the task in a background thread
+    executor.execute(() -> {
+      AppendValuesResponse response = null;
+      List<List<String>> columnData = null;
 
-      // Configure a new value range to store the data
-      ValueRange content = new ValueRange();
-      content.setMajorDimension("ROWS");
-      content.setRange(range);
-
-      // Make sure the list has values
-      assert columnData != null;
-      if (!columnData.isEmpty()) {
-
-        // Create a new list to store the sheet values
-        List<List<Object>> upload = new ArrayList<>();
-
-        for (int i = 0; i < columnData.size(); i++) {
-          List<String> rowData = columnData.get(i);
-          List<Object> row = new ArrayList<>(rowData);
-          upload.add(row);
+      if (uploadMode != null) {
+        switch (uploadMode) {
+          case "Crowd":
+            columnData = new ArrayList<>(matchPreference.getObject("upload_data",
+                    ArrayList.class, new ArrayList<>()));
+            break;
+          case "Pit":
+            columnData = new ArrayList<>(matchPreference.getObject("pit_upload_data",
+                    ArrayList.class, new ArrayList<>()));
+            break;
+          case "Speciality":
+            columnData = new ArrayList<>(matchPreference.getObject("special_upload_data",
+                    ArrayList.class, new ArrayList<>()));
+            break;
+          default:
+            Log.d("SheetsUpdateTaskRunner", "No valid upload mode set.");
         }
-
-        // Set the value range to our data
-        content.setValues(upload);
-
-        // Command to upload the data to google sheets
-        return sheetsService.spreadsheets().values().append(spreadsheetId, range, content)
-            .setValueInputOption("USER_ENTERED")
-            .setInsertDataOption("OVERWRITE")
-            .execute();
       }
-      // Google Auth Flow handling (Makes a popup asking for permission to access google account)
-    } catch (UserRecoverableAuthIOException g) {
-      mLastError = g;
-      cancel(true);
-      Log.d("SheetsUpdateTask", g.getMessage());
-      debugPreference.putBoolean("upload_error", true);
-      debugPreference.setString("upload_error_message", g.getMessage());
-      g.printStackTrace();
-      return null;
-      // General Error reporting
-    } catch (IOException e) {
-      Log.d("SheetsUpdateTask", e.getMessage());
-      e.printStackTrace();
-      debugPreference.putBoolean("upload_error", true);
-      debugPreference.setString("upload_error_message", e.getMessage());
-      return null;
-    }
-    return null;
-  }
+      Log.d("SheetsUpdateTaskRunner", "Column Data Size: " + (columnData != null ? columnData.size() : 0));
 
-  @Override
-  protected void onPreExecute() {
-    spreadsheetId = configPreference.getString("workbook_id","");
-  }
+      try {
+        // Determine the sheet range based on the upload mode
+        String range = "";
+        if (uploadMode != null) {
+          switch (uploadMode) {
+            case "Crowd":
+              range = configPreference.getString("Crowd_range", "Sheet1!A1");
+              break;
+            case "Pit":
+              range = configPreference.getString("Pit_range", "Sheet1!A1");
+              break;
+            case "Speciality":
+              range = configPreference.getString("Speciality_range", "Sheet1!A1");
+              break;
+          }
+        }
+        Log.d("SheetsUpdateTaskRunner", "Sheet Range: " + range);
 
-  @Override
-  protected void onPostExecute(AppendValuesResponse response) {
-    // Anything that is not null is a successful upload
-    if (response == null) {
-      if (debugPreference.getBoolean("upload_error", false)) {
-        debugPreference.putBoolean("upload_error", false);
-        Toast.makeText(context, debugPreference.getString("upload_error_message"),
-            Toast.LENGTH_LONG).show();
-      } else {
-        Toast.makeText(context, "No data to upload", Toast.LENGTH_LONG).show();
+        // Configure the ValueRange object to hold our data
+        ValueRange content = new ValueRange();
+        content.setMajorDimension("ROWS");
+        content.setRange(range);
+
+        if (columnData != null && !columnData.isEmpty()) {
+          // Convert List<List<String>> into List<List<Object>>
+          List<List<Object>> upload = new ArrayList<>();
+          for (List<String> rowData : columnData) {
+            List<Object> row = new ArrayList<>(rowData);
+            upload.add(row);
+          }
+          content.setValues(upload);
+
+          Log.d("SheetsUpdateTaskRunner", "Uploading data to Google Sheets...");
+          // Execute the API call to append data
+          response = sheetsService.spreadsheets().values().append(spreadsheetId, range, content)
+                  .setValueInputOption("USER_ENTERED")
+                  .setInsertDataOption("OVERWRITE")
+                  .execute();
+          Log.d("SheetsUpdateTaskRunner", "Upload Response: " + response.getUpdates().toString());
+        } else {
+          Log.d("SheetsUpdateTaskRunner", "No data available to upload.");
+        }
+      } catch (UserRecoverableAuthIOException g) {
+        mLastError = g;
+        Log.d("SheetsUpdateTaskRunner", "UserRecoverableAuthIOException: " + g.getMessage());
+        debugPreference.putBoolean("upload_error", true);
+        debugPreference.setString("upload_error_message", g.getMessage());
+        // Post to UI thread to start the account picker activity
+        handler.post(() -> activity.startActivityForResult(mLastError.getIntent(), REQUEST_ACCOUNT_PICKER));
+        return;
+      } catch (IOException e) {
+        Log.d("SheetsUpdateTaskRunner", "IOException: " + e.getMessage());
+        e.printStackTrace();
+        debugPreference.putBoolean("upload_error", true);
+        debugPreference.setString("upload_error_message", e.getMessage());
       }
-    } else {
-      // If the response is not null and rows were updated, send a message and clear the data cache
-      String test = response.getUpdates().getUpdatedRange();
-      Toast.makeText(context,"Updated Data range: " + test, Toast.LENGTH_LONG).show();
-      Log.d("Sheets", "onPostExecute: " + response.getUpdates().toString());
-      matchPreference.clear();
-    }
 
-  }
-
-  @Override
-  protected void onCancelled() {
-    // Bring up the google auth app auth flow if play services cancels our first request
-    activity.startActivityForResult ( mLastError.getIntent(),REQUEST_ACCOUNT_PICKER);
+      // Post the result back to the UI thread
+      final AppendValuesResponse finalResponse = response;
+      handler.post(() -> {
+        if (finalResponse == null) {
+          if (debugPreference.getBoolean("upload_error", false)) {
+            debugPreference.putBoolean("upload_error", false);
+            Toast.makeText(context, debugPreference.getString("upload_error_message"),
+                    Toast.LENGTH_LONG).show();
+          } else {
+            Toast.makeText(context, "No data to upload", Toast.LENGTH_LONG).show();
+          }
+        } else {
+          String updatedRange = finalResponse.getUpdates().getUpdatedRange();
+          Toast.makeText(context, "Updated Data range: " + updatedRange,
+                  Toast.LENGTH_LONG).show();
+          Log.d("SheetsUpdateTaskRunner", "onPostExecute: " + finalResponse.getUpdates().toString());
+          matchPreference.clear();
+        }
+      });
+    });
   }
 }

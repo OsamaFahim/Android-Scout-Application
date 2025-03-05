@@ -555,11 +555,17 @@ public class Scanner extends Fragment {
         Runtime.getRuntime().exit(0);
     }
 
-    // Starts the AsyncTask to push the data to the Sheets API.
-    protected void call_sheets(){
-        SheetsUpdateTask task = new SheetsUpdateTask(requireActivity());
-        task.execute();
-    }
+     //Starts the AsyncTask to push the data to the Sheets API.
+//    protected void call_sheets(){
+//        SheetsUpdateTask task = new SheetsUpdateTask(requireActivity());
+//        task.execute();
+//    }
+     protected void call_sheets(){
+         SheetsUpdateTask taskRunner = new SheetsUpdateTask(requireActivity());
+         taskRunner.execute();
+     }
+
+
 
     public void refreshActionBar() {
         AppCompatActivity activity = (AppCompatActivity) getActivity();

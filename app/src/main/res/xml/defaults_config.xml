@@ -31,6 +31,11 @@
   </entry>
 
   <entry>
+    <key>workbook_id</key>
+    <value>1ksCFboY3RF0d6eCQHtH2bdrPWFHXZXnicNJGz6pXndM</value>
+  </entry>
+
+  <entry>
     <key>grid_toggle</key>
     <value>true</value>
   </entry>
@@ -64,4 +69,11 @@
     <key>upload_unique_toggle</key>
     <value>true</value>
   </entry>
+
+  <entry>
+    <key>Crowd_range</key>
+    <value>Sheet1!A1</value>
+  </entry>
+
+
 </defaultMap>
