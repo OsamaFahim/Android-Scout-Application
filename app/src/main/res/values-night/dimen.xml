@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-<dimen name="sbg_dividerPadding">0dp</dimen>
-<dimen name="sbg_dividerWidth">3dp</dimen>
+    <dimen name="sbg_dividerPadding">0dp</dimen>
+    <dimen name="sbg_dividerWidth">3dp</dimen>
+    <!-- You can override other dimensions if needed. Otherwise, they will fall back to the default values. -->
 </resources>

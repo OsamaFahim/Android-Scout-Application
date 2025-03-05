@@ -1,11 +1,14 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <dimen name="sbg_dividerPadding">10dp</dimen>
-  <dimen name="sbg_dividerWidth">2dp</dimen>
-  <dimen name="color_picker_view_size">200dp</dimen>
-  <dimen name="cardview_title_size">24sp</dimen>
-  <dimen name="cardview_margin_bottom">5sp</dimen>
-  <dimen name="cardview_margin_top">5sp</dimen>
-  <dimen name="cardview_margin_start">5sp</dimen>
-  <dimen name="cardview_margin_end">5sp</dimen>
+  <dimen name="sbg_dividerPadding">12dp</dimen>
+  <dimen name="sbg_dividerWidth">3dp</dimen>
+  <dimen name="color_picker_view_size">300dp</dimen>
+  <dimen name="cardview_title_size">20sp</dimen>
+  <dimen name="cardview_margin_top">16dp</dimen>
+  <dimen name="cardview_margin_bottom">16dp</dimen>
+  <dimen name="cardview_margin_start">16dp</dimen>
+  <dimen name="cardview_margin_end">16dp</dimen>
+  <dimen name="cardview_corner_radius">12dp</dimen>
+  <dimen name="cardview_elevation">6dp</dimen>
+  <dimen name="help_button_size">40dp</dimen>
+  <dimen name="help_button_margin_end">12dp</dimen>
 </resources>
