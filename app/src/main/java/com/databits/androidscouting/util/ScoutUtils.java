@@ -181,7 +181,9 @@ public class ScoutUtils {
 //        // (Your NONE case logic here, or leave as needed)
 //        break;
       case AUTO:
-        constraintSet.connect(R.id.recycler_view_top, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM, 0);
+        Log.d("AUTO", "AUTO here");
+
+        constraintSet.connect(R.id.recycler_view_top, ConstraintSet.TOP, R.id.recycler_view_bot, ConstraintSet.BOTTOM, 0);
         constraintSet.setVisibility(R.id.recycler_view_bot, View.GONE);
         topParam.height = ViewGroup.LayoutParams.WRAP_CONTENT;
         for (int j = 3; j < 6; j++) {
@@ -196,7 +198,8 @@ public class ScoutUtils {
         }
         break;
       case TELEOP:
-        constraintSet.connect(R.id.recycler_view_top, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM, 0);
+        Log.d("TELEOP", "TELEOP here");
+        constraintSet.connect(R.id.recycler_view_top, ConstraintSet.TOP, R.id.recycler_view_bot, ConstraintSet.BOTTOM, 0);
         constraintSet.setVisibility(R.id.recycler_view_bot, View.GONE);
         topParam.height = ViewGroup.LayoutParams.WRAP_CONTENT;
         for (int j = 3; j < 6; j++) {
@@ -211,9 +214,11 @@ public class ScoutUtils {
         }
         break;
       case BOTH:
-        constraintSet.connect(R.id.recycler_view_top, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM, 0);
-        constraintSet.connect(R.id.recycler_view_top, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM, 0);
-        constraintSet.connect(R.id.recycler_view_top, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM, 0);
+        Log.d("BOTH", "BOTH here");
+
+        constraintSet.connect(R.id.recycler_view_top, ConstraintSet.TOP, R.id.recycler_view_bot, ConstraintSet.BOTTOM, 0);
+        constraintSet.connect(R.id.recycler_view_top, ConstraintSet.TOP, R.id.recycler_view_bot, ConstraintSet.BOTTOM, 0);
+        constraintSet.connect(R.id.recycler_view_top, ConstraintSet.TOP, R.id.recycler_view_bot, ConstraintSet.BOTTOM, 0);
         constraintSet.setVisibility(R.id.recycler_view_top, View.VISIBLE);
         constraintSet.setVisibility(R.id.recycler_view_bot, View.VISIBLE);
         topParam.height = ViewGroup.LayoutParams.WRAP_CONTENT;
