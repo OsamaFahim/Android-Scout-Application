@@ -28,6 +28,7 @@ import com.addisonelliott.segmentedbutton.SegmentedButtonGroup;
 import com.databits.androidscouting.R;
 import com.databits.androidscouting.databinding.FragmentProvisionBinding;
 import com.databits.androidscouting.util.MatchInfo;
+import com.databits.androidscouting.util.PreferenceManager;
 import com.databits.androidscouting.util.QrCodeGenerator;
 import com.databits.androidscouting.util.TeamInfo;
 import com.google.android.material.switchmaterial.SwitchMaterial;
@@ -64,9 +65,13 @@ public class Provision extends Fragment {
 
   List<String> entryLabels = new ArrayList<>();
 
-  Preference configPreference = PowerPreference.getFileByName("Config");
-  Preference debugPreference = PowerPreference.getFileByName("Debug");
-  Preference listPreference = PowerPreference.getFileByName("List");
+//  Preference configPreference = PowerPreference.getFileByName("Config");
+//  Preference debugPreference = PowerPreference.getFileByName("Debug");
+//  Preference listPreference = PowerPreference.getFileByName("List");
+  Preference configPreference = PreferenceManager.getInstance().getConfigPreference();
+  Preference listPreference = PreferenceManager.getInstance().getListPreference();
+  Preference debugPreference = PreferenceManager.getInstance().getDebugPreference();
+
 
   boolean lock = configPreference.getBoolean("role_locked_toggle", false);
 

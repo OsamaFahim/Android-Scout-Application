@@ -31,9 +31,16 @@ public class SpecialCell extends BaseCell {
         builder.append(teamSelector.getButton(teamSelector.getPosition()).getText()).append(",");
 
         // For each counter, use NumberPicker's getValue() after setting proper min/max.
-        NumberPicker algaeMiss = itemView.findViewById(R.id.counterUI1).findViewById(R.id.number_counter_inside);
-        NumberPicker algaeSuccess = itemView.findViewById(R.id.counterUI2).findViewById(R.id.number_counter_inside);
-        NumberPicker algaeReturned = itemView.findViewById(R.id.counterUI3).findViewById(R.id.number_counter_inside);
+        com.travijuu.numberpicker.library.NumberPicker algaeMiss = itemView.findViewById(R.id.counterUI1)
+                .findViewById(R.id.number_counter_inside);
+        com.travijuu.numberpicker.library.NumberPicker algaeSuccess = itemView.findViewById(R.id.counterUI1)
+                .findViewById(R.id.number_counter_inside);
+
+        com.travijuu.numberpicker.library.NumberPicker algaeReturned = itemView.findViewById(R.id.counterUI1)
+                .findViewById(R.id.number_counter_inside);
+
+        //NumberPicker algaeSuccess = itemView.findViewById(R.id.counterUI2).findViewById(R.id.number_counter_inside);
+        //NumberPicker algaeReturned = itemView.findViewById(R.id.counterUI3).findViewById(R.id.number_counter_inside);
         builder.append(algaeMiss.getValue()).append(",");
         builder.append(algaeSuccess.getValue()).append(",");
         builder.append(algaeReturned.getValue());

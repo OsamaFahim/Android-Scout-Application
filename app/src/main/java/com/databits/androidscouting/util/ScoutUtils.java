@@ -71,9 +71,12 @@ public class ScoutUtils {
   public static final int REQUEST_CODE_PERMISSIONS = 10;
   public static final String[] REQUIRED_PERMISSIONS = {android.Manifest.permission.CAMERA};
 
-  Preference configPreference = PowerPreference.getFileByName("Config");
-  Preference debugPreference = PowerPreference.getFileByName("Debug");
-  Preference listPreference = PowerPreference.getFileByName("List");
+//  Preference configPreference = PowerPreference.getFileByName("Config");
+//  Preference debugPreference = PowerPreference.getFileByName("Debug");
+//  Preference listPreference = PowerPreference.getFileByName("List");
+Preference configPreference = PreferenceManager.getInstance().getConfigPreference();
+  Preference listPreference = PreferenceManager.getInstance().getListPreference();
+  Preference debugPreference = PreferenceManager.getInstance().getDebugPreference();
 
   MatchInfo matchInfo;
   TeamInfo teamInfo;

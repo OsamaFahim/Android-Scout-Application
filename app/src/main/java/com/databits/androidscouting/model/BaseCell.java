@@ -15,6 +15,7 @@ import com.skydoves.balloon.Balloon;
 import com.skydoves.balloon.BalloonAnimation;
 import com.skydoves.balloon.BalloonSizeSpec;
 
+
 public abstract class BaseCell {
     protected int mCellId;
     protected String mTitle;

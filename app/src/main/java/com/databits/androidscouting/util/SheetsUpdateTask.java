@@ -40,9 +40,12 @@ public class SheetsUpdateTask {
   private String spreadsheetId;
 
   // Preferences for configuration and debug info
-  Preference configPreference = PowerPreference.getFileByName("Config");
-  Preference debugPreference = PowerPreference.getFileByName("Debug");
-  Preference matchPreference = PowerPreference.getFileByName("Match");
+//  Preference configPreference = PowerPreference.getFileByName("Config");
+//  Preference debugPreference = PowerPreference.getFileByName("Debug");
+//  Preference matchPreference = PowerPreference.getFileByName("Match");
+  Preference configPreference = (Preference) PreferenceManager.getInstance().getConfigPreference();
+  Preference debugPreference = PreferenceManager.getInstance().getDebugPreference();
+  Preference matchPreference = PreferenceManager.getInstance().getMatchPreference();
 
   // Executor for background work and a handler for UI updates
   private final ExecutorService executor;

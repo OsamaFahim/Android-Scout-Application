@@ -32,6 +32,7 @@ import com.databits.androidscouting.databinding.FragmentScannerBinding;
 import com.databits.androidscouting.model.QrCodeDrawable;
 import com.databits.androidscouting.model.QrCodeViewModel;
 import com.databits.androidscouting.util.MatchInfo;
+import com.databits.androidscouting.util.PreferenceManager;
 import com.databits.androidscouting.util.ScoutUtils;
 import com.databits.androidscouting.util.SheetsUpdateTask;
 import com.databits.androidscouting.util.TeamInfo;
@@ -69,10 +70,15 @@ public class Scanner extends Fragment {
 
     private FragmentScannerBinding binding;
 
-    Preference configPreference = PowerPreference.getFileByName("Config");
-    Preference debugPreference = PowerPreference.getFileByName("Debug");
-    Preference listPreference = PowerPreference.getFileByName("List");
-    Preference matchPreference = PowerPreference.getFileByName("Match");
+//    Preference configPreference = PowerPreference.getFileByName("Config");
+//    Preference debugPreference = PowerPreference.getFileByName("Debug");
+//    Preference listPreference = PowerPreference.getFileByName("List");
+//    Preference matchPreference = PowerPreference.getFileByName("Match");
+    Preference configPreference = PreferenceManager.getInstance().getConfigPreference();
+    Preference listPreference = PreferenceManager.getInstance().getListPreference();
+    Preference debugPreference = PreferenceManager.getInstance().getDebugPreference();
+    Preference matchPreference = PreferenceManager.getInstance().getMatchPreference();
+
     Preference defaultPreference = PowerPreference.getDefaultFile();
 
     MatchInfo matchInfo;

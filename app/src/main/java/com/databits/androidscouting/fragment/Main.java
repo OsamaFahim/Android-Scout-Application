@@ -24,6 +24,7 @@ import com.databits.androidscouting.R;
 import com.databits.androidscouting.databinding.FragmentMainBinding;
 import com.databits.androidscouting.util.FileUtils;
 import com.databits.androidscouting.util.GoogleAuthActivity;
+import com.databits.androidscouting.util.PreferenceManager;
 import com.databits.androidscouting.util.ScoutUtils;
 import com.databits.androidscouting.util.TeamInfo;
 import com.preference.PowerPreference;
@@ -35,8 +36,12 @@ public class Main extends Fragment {
 
     private FragmentMainBinding binding;
 
-    Preference configPreference = PowerPreference.getFileByName("Config");
-    Preference debugPreference = PowerPreference.getFileByName("Debug");
+//    Preference configPreference = PowerPreference.getFileByName("Config");
+//    Preference debugPreference = PowerPreference.getFileByName("Debug");
+
+    Preference configPreference = (Preference) PreferenceManager.getInstance().getConfigPreference();
+    Preference debugPreference = PreferenceManager.getInstance().getDebugPreference();
+
 
     TeamInfo teamInfo;
     FileUtils fileUtils;
