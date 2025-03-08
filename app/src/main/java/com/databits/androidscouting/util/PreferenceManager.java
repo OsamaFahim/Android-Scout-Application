@@ -13,6 +13,7 @@ public class PreferenceManager {
     private final com.preference.Preference debugPreference;
     private final com.preference.Preference listPreference;
     private final com.preference.Preference matchPreference;
+    private final com.preference.Preference pitDataPreference;
     private PreferenceManager() {
         // Initialize each preference only once
         //PowerPreference.init(context);
@@ -20,6 +21,7 @@ public class PreferenceManager {
         debugPreference = PowerPreference.getFileByName("Debug");
         listPreference = PowerPreference.getFileByName("List");
         matchPreference = PowerPreference.getFileByName("Match");
+        pitDataPreference = PowerPreference.getFileByName("PitData");
     }
 
     public static synchronized PreferenceManager getInstance() {
@@ -44,5 +46,6 @@ public class PreferenceManager {
     public com.preference.Preference getMatchPreference() {
         return matchPreference;
     }
+    public com.preference.Preference getPitDataPreference() {return pitDataPreference;}
 }
 

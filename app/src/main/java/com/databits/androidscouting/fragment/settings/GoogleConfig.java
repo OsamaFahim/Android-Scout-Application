@@ -127,6 +127,7 @@ Preference configPreference = PreferenceManager.getInstance().getConfigPreferenc
     } else {
       editText.setText(sheet);
     }
+    Toast.makeText(requireContext(), configPreference.getString("workbook_id",""), Toast.LENGTH_SHORT).show();
   }
 
   private void updateRange(View view, String id_prefix, boolean save) {
@@ -137,6 +138,8 @@ Preference configPreference = PreferenceManager.getInstance().getConfigPreferenc
     String title = String.format("%s Data Location", id_prefix);
 
     // Set view title based on id_prefix
+    Toast.makeText(requireContext(), id_prefix, Toast.LENGTH_SHORT).show();
+
     switch (id_prefix) {
       case "Crowd":
         binding.crowdSheetLocation.dataTitle.setText(title);
@@ -156,6 +159,8 @@ Preference configPreference = PreferenceManager.getInstance().getConfigPreferenc
 
       // Set configPreference string to the range based on id_prefix
       configPreference.setString(id_prefix + "_range", range);
+      Toast.makeText(requireContext(), configPreference.getString("Specialty_range",""), Toast.LENGTH_SHORT).show();
+
     } else {
       // Get the range from configPreference and set the name, lower, and upper text fields
       String range = configPreference.getString(id_prefix + "_range","");
@@ -244,195 +249,3 @@ Preference configPreference = PreferenceManager.getInstance().getConfigPreferenc
   );
 }
 
-//package com.databits.androidscouting.fragment.settings;
-//
-//import android.app.Activity;
-//import android.content.Context;
-//import android.os.Handler;
-//import android.os.Looper;
-//import android.util.Log;
-//import android.widget.Toast;
-//
-//import com.google.api.client.extensions.android.http.AndroidHttp;
-//import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
-//import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
-//import com.google.api.client.http.HttpTransport;
-//import com.google.api.client.json.JsonFactory;
-//import com.google.api.client.json.jackson2.JacksonFactory;
-//import com.google.api.client.util.ExponentialBackOff;
-//import com.google.api.services.sheets.v4.Sheets;
-//import com.google.api.services.sheets.v4.SheetsScopes;
-//import com.google.api.services.sheets.v4.model.AppendValuesResponse;
-//import com.google.api.services.sheets.v4.model.ValueRange;
-//import com.preference.PowerPreference;
-//import com.preference.Preference;
-//
-//import java.io.IOException;
-//import java.util.ArrayList;
-//import java.util.Arrays;
-//import java.util.List;
-//import java.util.concurrent.ExecutorService;
-//import java.util.concurrent.Executors;
-//
-//import static com.databits.androidscouting.util.GoogleAuthActivity.REQUEST_ACCOUNT_PICKER;
-//
-//public class GoogleConfig {
-//  // Keep track of the last auth error
-//  public static UserRecoverableAuthIOException mLastError;
-//
-//  private final Context context;
-//  private final Activity activity;
-//  private final Sheets sheetsService;
-//  private String spreadsheetId;
-//
-//  // Preferences for configuration and debug info
-//  Preference configPreference = PowerPreference.getFileByName("Config");
-//  Preference debugPreference = PowerPreference.getFileByName("Debug");
-//  Preference matchPreference = PowerPreference.getFileByName("Match");
-//
-//  // Executor for background work and a handler for UI updates
-//  private final ExecutorService executor;
-//  private final Handler handler;
-//
-//  public GoogleConfig(Activity activity) {
-//    this.activity = activity;
-//    this.context = activity.getBaseContext();
-//    this.handler = new Handler(Looper.getMainLooper());
-//    this.executor = Executors.newSingleThreadExecutor();
-//
-//    // Set up Google Account Credential
-//    GoogleAccountCredential credential = GoogleAccountCredential.usingOAuth2(
-//                    context, Arrays.asList(SheetsScopes.SPREADSHEETS))
-//            .setBackOff(new ExponentialBackOff());
-//
-//    String accountName = configPreference.getString("google_account_name", null);
-//    credential.setSelectedAccountName(accountName);
-//
-//    // Log the selected account name for debugging
-//    Log.d("GoogleConfig", "Selected Account Name: " + accountName);
-//
-//    HttpTransport transport = AndroidHttp.newCompatibleTransport();
-//    JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
-//    sheetsService = new Sheets.Builder(transport, jsonFactory, credential)
-//            .setApplicationName("Android Scouter")
-//            .build();
-//  }
-//
-//  public void execute() {
-//    // onPreExecute equivalent: retrieve the spreadsheet ID
-//    spreadsheetId = configPreference.getString("workbook_id", "");
-//    Log.d("GoogleConfig", "Spreadsheet ID: " + spreadsheetId);
-//
-//    // Optionally, you can try verifying if the spreadsheet exists by calling the get API.
-//    // Uncomment the following block if you wish to check existence (this call is blocking).
-//    /*
-//    try {
-//      Sheets.Spreadsheets.Get request = sheetsService.spreadsheets().get(spreadsheetId);
-//      request.execute();
-//      Log.d("GoogleConfig", "Spreadsheet exists.");
-//    } catch (IOException e) {
-//      Log.d("GoogleConfig", "Spreadsheet does not exist or error fetching spreadsheet: " + e.getMessage());
-//    }
-//    */
-//
-//    // Execute the task in a background thread
-//    executor.execute(() -> {
-//      AppendValuesResponse response = null;
-//      List<List<String>> columnData = null;
-//      String uploadMode = configPreference.getString("uploadMode");
-//      Log.d("GoogleConfig", "Upload Mode: " + uploadMode);
-//
-//      // Determine which data set to upload based on uploadMode
-//      if (uploadMode != null) {
-//        switch (uploadMode) {
-//          case "Crowd":
-//            columnData = new ArrayList<>(matchPreference.getObject("upload_data", ArrayList.class, new ArrayList<>()));
-//            break;
-//          case "Pit":
-//            columnData = new ArrayList<>(matchPreference.getObject("pit_upload_data", ArrayList.class, new ArrayList<>()));
-//            break;
-//          case "Speciality":
-//            columnData = new ArrayList<>(matchPreference.getObject("special_upload_data", ArrayList.class, new ArrayList<>()));
-//            break;
-//        }
-//      }
-//      Log.d("GoogleConfig", "Column Data size: " + (columnData != null ? columnData.size() : 0));
-//
-//      try {
-//        // Determine the sheet range based on the upload mode
-//        String range = "";
-//        if (uploadMode != null) {
-//          switch (uploadMode) {
-//            case "Crowd":
-//              range = configPreference.getString("Crowd_range", "");
-//              break;
-//            case "Pit":
-//              range = configPreference.getString("Pit_range", "");
-//              break;
-//            case "Speciality":
-//              range = configPreference.getString("Speciality_range", "");
-//              break;
-//          }
-//        }
-//        Log.d("GoogleConfig", "Sheet Range: " + range);
-//
-//        // Prepare the content to upload
-//        ValueRange content = new ValueRange();
-//        content.setMajorDimension("ROWS");
-//        content.setRange(range);
-//
-//        if (columnData != null && !columnData.isEmpty()) {
-//          List<List<Object>> upload = new ArrayList<>();
-//          for (List<String> rowData : columnData) {
-//            List<Object> row = new ArrayList<>(rowData);
-//            upload.add(row);
-//          }
-//          content.setValues(upload);
-//
-//          Log.d("GoogleConfig", "Uploading data to Google Sheets...");
-//          // Execute the Sheets API call to append data
-//          response = sheetsService.spreadsheets().values().append(spreadsheetId, range, content)
-//                  .setValueInputOption("USER_ENTERED")
-//                  .setInsertDataOption("OVERWRITE")
-//                  .execute();
-//          Log.d("GoogleConfig", "Upload response received: " + response.getUpdates().toString());
-//        } else {
-//          Log.d("GoogleConfig", "No data available to upload.");
-//        }
-//      } catch (UserRecoverableAuthIOException g) {
-//        mLastError = g;
-//        Log.d("GoogleConfig", "UserRecoverableAuthIOException: " + g.getMessage());
-//        debugPreference.putBoolean("upload_error", true);
-//        debugPreference.setString("upload_error_message", g.getMessage());
-//        // Post to UI thread to start the account picker intent (onCancelled equivalent)
-//        handler.post(() -> activity.startActivityForResult(mLastError.getIntent(), REQUEST_ACCOUNT_PICKER));
-//        return;
-//      } catch (IOException e) {
-//        Log.d("GoogleConfig", "IOException: " + e.getMessage());
-//        e.printStackTrace();
-//        debugPreference.putBoolean("upload_error", true);
-//        debugPreference.setString("upload_error_message", e.getMessage());
-//      }
-//
-//      // onPostExecute equivalent: post the result to the UI thread
-//      final AppendValuesResponse finalResponse = response;
-//      handler.post(() -> {
-//        if (finalResponse == null) {
-//          if (debugPreference.getBoolean("upload_error", false)) {
-//            debugPreference.putBoolean("upload_error", false);
-//            Toast.makeText(context, debugPreference.getString("upload_error_message"),
-//                    Toast.LENGTH_LONG).show();
-//          } else {
-//            Toast.makeText(context, "No data to upload", Toast.LENGTH_LONG).show();
-//          }
-//        } else {
-//          String updatedRange = finalResponse.getUpdates().getUpdatedRange();
-//          Toast.makeText(context, "Updated Data range: " + updatedRange,
-//                  Toast.LENGTH_LONG).show();
-//          Log.d("GoogleConfig", "onPostExecute: " + finalResponse.getUpdates().toString());
-//          matchPreference.clear();
-//        }
-//      });
-//    });
-//  }
-//}

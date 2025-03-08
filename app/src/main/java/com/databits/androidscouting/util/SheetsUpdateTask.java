@@ -98,7 +98,7 @@ public class SheetsUpdateTask {
             columnData = new ArrayList<>(matchPreference.getObject("pit_upload_data",
                     ArrayList.class, new ArrayList<>()));
             break;
-          case "Speciality":
+          case "Specialty":
             columnData = new ArrayList<>(matchPreference.getObject("special_upload_data",
                     ArrayList.class, new ArrayList<>()));
             break;
@@ -114,13 +114,13 @@ public class SheetsUpdateTask {
         if (uploadMode != null) {
           switch (uploadMode) {
             case "Crowd":
-              range = configPreference.getString("Crowd_range", "Sheet1!A1");
+              range = configPreference.getString("Crowd_range", "1");
               break;
             case "Pit":
-              range = configPreference.getString("Pit_range", "Sheet1!A1");
+              range = configPreference.getString("Pit_range", "");
               break;
-            case "Speciality":
-              range = configPreference.getString("Speciality_range", "Sheet1!A1");
+            case "Specialty":
+              range = configPreference.getString("Specialty_range", "");
               break;
           }
         }

@@ -39,7 +39,7 @@ public class Main extends Fragment {
 //    Preference configPreference = PowerPreference.getFileByName("Config");
 //    Preference debugPreference = PowerPreference.getFileByName("Debug");
 
-    Preference configPreference = (Preference) PreferenceManager.getInstance().getConfigPreference();
+    Preference configPreference = PreferenceManager.getInstance().getConfigPreference();
     Preference debugPreference = PreferenceManager.getInstance().getDebugPreference();
 
 
