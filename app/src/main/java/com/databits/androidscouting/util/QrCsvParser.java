@@ -4,6 +4,7 @@ import android.util.Log;
 import java.util.Arrays;
 
 /**
+ * NEW FILE ADDED
  * QrCsvParser handles parsing QR codes with better validation, format handling, and error control.
  */
 public class QrCsvParser {

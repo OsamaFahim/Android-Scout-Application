@@ -8,12 +8,22 @@ import com.addisonelliott.segmentedbutton.SegmentedButtonGroup;
 import com.databits.androidscouting.R;
 import java.util.List;
 
+//NEW FILE ADDED
+// SegmentCell extends BaseCell to implement a cell that uses a segmented button group.
+// This cell type is used for selection among multiple segments.
 public class SegmentCell extends BaseCell {
-
+    // Constructor: Initializes the SegmentCell with an ID, title, and cell parameters.
     public SegmentCell(int mCellId, String mTitle, CellParam mParam) {
         super(mCellId, mTitle, mParam);
     }
 
+    /**
+     * Binds the main views of the SegmentCell.
+     * This method sets up the title and configures the segmented button group based on the provided labels.
+     *
+     * @param itemView The view representing this cell.
+     * @param context  The context in which the view exists.
+     */
     @Override
     protected void bindMainViews(View itemView, Context context) {
         // 1. Set the title
@@ -38,10 +48,10 @@ public class SegmentCell extends BaseCell {
         SegmentedButton btn5 = itemView.findViewById(R.id.button_five);
         SegmentedButton btn6 = itemView.findViewById(R.id.button_six);
 
-        // Put them in an array for easy iteration
+        // 5. Put them in an array for easy iteration
         SegmentedButton[] allButtons = { btn1, btn2, btn3, btn4, btn5, btn6 };
 
-        // 5. For each label, set the text and make the button visible.
+        // 6. For each label, set the text and make the button visible.
         //    For any remaining buttons, hide them.
         for (int i = 0; i < allButtons.length; i++) {
             if (i < segmentCount && i < labels.size()) {
@@ -54,13 +64,26 @@ public class SegmentCell extends BaseCell {
         }
     }
 
+    /**
+     * Exports the data from the SegmentCell.
+     * Retrieves and returns the position of the selected segment as a String.
+     *
+     * @param itemView The view representing this cell.
+     * @return A String representing the selected segment's position.
+     */
     @Override
     public String exportData(View itemView) {
+        // Retrieve the segmented button group.
         SegmentedButtonGroup group = itemView.findViewById(R.id.buttonGroup_segments);
         // Return the position of the selected button
         return String.valueOf(group.getPosition());
     }
 
+    /**
+     * Returns the type of this cell.
+     *
+     * @return A String "Segment" indicating that this cell is a SegmentCell.
+     */
     @Override
     public String getType() {
         return "Segment";

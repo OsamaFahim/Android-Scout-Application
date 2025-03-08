@@ -55,6 +55,7 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Map;
 
+//FILE UPDATED
 /**
  * QR.java
  *
@@ -72,7 +73,7 @@ import java.util.Map;
  *
  * • Code Cleanup & Organization: The code is split into logical sections with detailed comments explaining each block.
  *
- * NOTE: File names and dependency references remain unchanged.
+ * NOTE: File names and dependency references rem   ain unchanged.
  */
 
 public class QR extends Fragment {

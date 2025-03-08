@@ -7,8 +7,11 @@ import com.databits.androidscouting.R;
 // Use the travijuu NumberPicker, not android.widget.NumberPicker
 import com.travijuu.numberpicker.library.NumberPicker;
 
+//NEW FILE ADDED
+// CounterCell extends the BaseCell to implement a cell that represents a counter.
 public class CounterCell extends BaseCell {
 
+    // Constructor: Initializes the CounterCell with its ID, title, and cell parameters.
     public CounterCell(int mCellId, String mTitle, CellParam mParam) {
         super(mCellId, mTitle, mParam);
     }

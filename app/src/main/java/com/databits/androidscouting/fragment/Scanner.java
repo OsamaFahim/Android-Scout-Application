@@ -66,6 +66,8 @@ import java.util.concurrent.Executors;
 
 import static androidx.camera.view.CameraController.COORDINATE_SYSTEM_VIEW_REFERENCED;
 
+//FILE UPDATED
+
 public class Scanner extends Fragment {
 
     private static final String TAG = "ScannerFragment"; // Tag for logging

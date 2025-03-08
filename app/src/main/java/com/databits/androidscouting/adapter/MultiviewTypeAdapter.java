@@ -11,14 +11,30 @@ import com.databits.androidscouting.model.BaseCell;
 import java.util.Collections;
 import java.util.List;
 
-import kotlin.jvm.Transient;
+//FILE UPDATED
+/**
+ * MultiviewTypeAdapter.java
+ *
+ * This adapter handles multiple view types for a RecyclerView by dynamically inflating
+ * different layouts based on the data type. It supports various UI components such as
+ * counters, text inputs, segmented buttons, lists, and more.
+ *
+ * Key Optimizations:
+ * - **ViewHolder Pattern**: Uses static inner classes to improve performance by reducing
+ *   unnecessary `findViewById()` calls.
+ * - **Enum-like View Type Constants**: Predefined integer values eliminate the need for
+ *   string comparisons, making `getItemViewType()` more efficient.
+ * - **Drag & Drop Support**: Implements `ItemTouchHelperAdapter` to allow reordering items
+ *   within the RecyclerView.
+ * - **Modular Binding Logic**: Delegates UI updates to each `BaseCell`, reducing redundancy.
+ */
 
 public class MultiviewTypeAdapter extends RecyclerView.Adapter<MultiviewTypeAdapter.BaseViewHolder> implements ItemTouchHelperAdapter {
 
-    private transient List<BaseCell> mCells;
-    private transient Context mContext;
+    private transient List<BaseCell> mCells; // Stores the list of cells to be displayed
+    private transient Context mContext; // Reference to the context for inflating views
 
-    // Define view type constants
+    // Define view type constants for different cell types to improve efficiency.
     public static final int VIEW_TYPE_YESNO = 0;
     public static final int VIEW_TYPE_TEXT = 1;
     public static final int VIEW_TYPE_COUNTER = 2;
@@ -29,22 +45,35 @@ public class MultiviewTypeAdapter extends RecyclerView.Adapter<MultiviewTypeAdap
     public static final int VIEW_TYPE_DUALCOUNTER = 7;
     public static final int VIEW_TYPE_SPECIAL = 8;
 
+     /**
+     * Constructor for initializing the adapter with a list of cells and a context.
+     */
     public MultiviewTypeAdapter(List<BaseCell> cells, Context context) {
         this.mCells = cells;
         this.mContext = context;
     }
 
+    /**
+     * Returns the list of cells currently stored in the adapter.
+     */
     public List<BaseCell> getCells() {
         return mCells;
     }
 
     // Base ViewHolder that delegates binding to the cell.
+    /**
+     * Base ViewHolder class that all other ViewHolders extend.
+     * Uses abstract `bind()` method to enforce a uniform binding structure.
+     */
     public static abstract class BaseViewHolder extends RecyclerView.ViewHolder {
         public BaseViewHolder(View itemView) {
             super(itemView);
         }
         public abstract void bind(BaseCell cell, Context context);
     }
+
+    // Below are different ViewHolder classes for different UI elements.
+    // Each ViewHolder extends `BaseViewHolder` and binds its respective data.
 
     public static class YesNoViewHolder extends BaseViewHolder {
         public YesNoViewHolder(View itemView) {
@@ -136,6 +165,9 @@ public class MultiviewTypeAdapter extends RecyclerView.Adapter<MultiviewTypeAdap
         }
     }
 
+    /**
+     * Determines the type of view for each cell in the RecyclerView.
+     */
     @Override
     public int getItemViewType(int position) {
         String type = mCells.get(position).getType();
@@ -165,6 +197,9 @@ public class MultiviewTypeAdapter extends RecyclerView.Adapter<MultiviewTypeAdap
         }
     }
 
+    /**
+     * Creates a new ViewHolder based on the view type.
+     */
     @NonNull
     @Override
     public BaseViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -203,6 +238,9 @@ public class MultiviewTypeAdapter extends RecyclerView.Adapter<MultiviewTypeAdap
         }
     }
 
+    /**
+     * Binds the ViewHolder to the corresponding cell data.
+     */
     @Override
     public void onBindViewHolder(@NonNull BaseViewHolder holder, int position) {
         BaseCell cell = mCells.get(position);
@@ -214,6 +252,7 @@ public class MultiviewTypeAdapter extends RecyclerView.Adapter<MultiviewTypeAdap
         return mCells.size();
     }
 
+    // Implements drag-and-drop functionality
     // ItemTouchHelperAdapter methods for drag/drop support
     @Override
     public void onItemMove(int fromPosition, int toPosition) {
@@ -236,6 +275,9 @@ public class MultiviewTypeAdapter extends RecyclerView.Adapter<MultiviewTypeAdap
         // Optionally handle item clear.
     }
 
+    /**
+     * Exports all cells as a CSV-compatible string.
+     */
     // Optional export method that delegates to each cell's exportData method.
     public String exportCells(RecyclerView recyclerView) {
         StringBuilder builder = new StringBuilder();
