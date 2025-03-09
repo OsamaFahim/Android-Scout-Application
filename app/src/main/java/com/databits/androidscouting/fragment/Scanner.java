@@ -18,7 +18,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;  // For alert dialogs
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.mlkit.vision.MlKitAnalyzer;
@@ -30,12 +30,14 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
+
 import com.databits.androidscouting.R;
 import com.databits.androidscouting.databinding.FragmentScannerBinding;
 import com.databits.androidscouting.model.QrCodeDrawable;
 import com.databits.androidscouting.model.QrCodeViewModel;
 import com.databits.androidscouting.util.MatchInfo;
 import com.databits.androidscouting.util.PreferenceManager;
+import com.databits.androidscouting.util.QrCsvParser; // Helper class for CSV parsing
 import com.databits.androidscouting.util.ScoutUtils;
 import com.databits.androidscouting.util.SheetsUpdateTask;
 import com.databits.androidscouting.util.TeamInfo;
@@ -47,6 +49,7 @@ import com.opencsv.CSVWriter;
 import com.preference.PowerPreference;
 import com.preference.Preference;
 import com.travijuu.numberpicker.library.NumberPicker;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -59,14 +62,11 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static androidx.camera.view.CameraController.COORDINATE_SYSTEM_VIEW_REFERENCED;
-
-//FILE UPDATED
 
 public class Scanner extends Fragment {
 
@@ -76,12 +76,11 @@ public class Scanner extends Fragment {
     protected ExecutorService cameraExecutor;
     private FragmentScannerBinding binding;
 
-    // Retrieve preferences via PreferenceManager for better reusability.
+    // Retrieve preferences via PreferenceManager for consistency.
     Preference configPreference = PreferenceManager.getInstance().getConfigPreference();
     Preference listPreference = PreferenceManager.getInstance().getListPreference();
     Preference debugPreference = PreferenceManager.getInstance().getDebugPreference();
     Preference matchPreference = PreferenceManager.getInstance().getMatchPreference();
-
     Preference defaultPreference = PowerPreference.getDefaultFile();
 
     MatchInfo matchInfo;
@@ -93,12 +92,13 @@ public class Scanner extends Fragment {
     PreviewView preview;
     LifecycleCameraController camController;
 
+    // These variables hold the last scanned QR data and error message.
+    private String lastScannedData = null;
+    private String lastScanError = null;
+
     @Override
-    public View onCreateView(
-            @NonNull LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState
-    ) {
-        // Added inline comment: Registering menu provider for this fragment.
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // Register the menu provider for this fragment with debug options.
         requireActivity().addMenuProvider(new MenuProvider() {
             @Override
             public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
@@ -108,17 +108,15 @@ public class Scanner extends Fragment {
             @Override
             public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
                 int id = menuItem.getItemId();
-
                 if (id == R.id.action_change_view) {
+                    // Toggle the 'isMaster' flag.
                     debugPreference.setBoolean("isMaster", !debugPreference.getBoolean("isMaster", false));
                     refreshUI();
                 }
-
                 if (id == R.id.action_debug) {
-                    // Launch the Power Preference debug screen
+                    // Launch debug screen.
                     PowerPreference.showDebugScreen(true);
                 }
-
                 return false;
             }
         }, this.getViewLifecycleOwner(), Lifecycle.State.CREATED);
@@ -130,29 +128,36 @@ public class Scanner extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        // Set full-screen immersive mode
+        // Set full-screen immersive mode.
         View decorView = requireActivity().getWindow().getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
         decorView.setSystemUiVisibility(uiOptions);
 
+        // Initialize utility classes.
         matchInfo = new MatchInfo();
         teamInfo = new TeamInfo(getContext());
         scoutUtils = new ScoutUtils(getContext());
-
         match = matchInfo.getMatch();
 
         String role = configPreference.getString("device_role");
 
+        // Set up navigation.
         NavController controller = NavHostFragment.findNavController(Scanner.this);
-
         binding.buttonBack.setOnClickListener(view1 -> controller.navigateUp());
 
+        // Upload button: if no valid scan is available, show alert.
         binding.buttonUpload.setOnClickListener(view1 -> {
-            // Directly call the sheets update task
-            call_sheets();
+            if (lastScanError != null) {
+                showScanRetryDialog(lastScanError);
+            } else if (lastScannedData == null || lastScannedData.trim().isEmpty()) {
+                showScanRetryDialog("No QR code data scanned. Please scan a valid QR code before uploading.");
+            } else {
+                // Start the Sheets upload process.
+                call_sheets();
+            }
         });
 
+        // Set up upload mode selection.
         binding.buttonGroupUploadMode.setOnPositionChangedListener(position -> {
             switch (position) {
                 case 0:
@@ -169,25 +174,25 @@ public class Scanner extends Fragment {
 
         binding.testButton.setOnClickListener(view1 -> PowerPreference.showDebugScreen(true));
 
+        // Configure the match number picker.
         NumberPicker matchCounter = binding.uiInsideNumberPicker;
         matchCounter = matchInfo.configurePicker(matchCounter);
 
-        // Load teams if not already loaded
+        // Load teams if not already loaded.
         if (listPreference.getObject("team_match", String[][].class) == null) {
             teamInfo.read_teams();
         }
-
         if (teamInfo.teamsLoaded()) {
             setupTeamDisplay(match);
         }
 
-        // Listener for match counter changes
+        // Listen for changes to the match counter.
         matchCounter.setValueChangedListener((value, action) -> {
             matchInfo.setMatch(value);
             setupTeamDisplay(value);
         });
 
-        // Adjust UI based on role preferences
+        // Adjust UI based on role preferences.
         if (configPreference.getBoolean("role_locked_toggle") && (!role.equals("master"))) {
             debugPreference.setBoolean("isMaster", false);
         } else if (role.equals("master")) {
@@ -195,6 +200,7 @@ public class Scanner extends Fragment {
             binding.buttonBack.setVisibility(View.INVISIBLE);
         }
 
+        // Initialize the camera and start scanning.
         cameraExecutor = Executors.newSingleThreadExecutor();
         preview = binding.previewView;
         refreshUI();
@@ -202,35 +208,31 @@ public class Scanner extends Fragment {
     }
 
     /**
-     * Initialize the camera and QR code scanning functionality.
+     * Initializes the camera and sets up QR scanning.
      */
     protected void openCamera() {
-        // Configure barcode scanner options to detect only QR codes.
+        // Configure ML Kit to detect only QR codes.
         BarcodeScannerOptions options = new BarcodeScannerOptions.Builder()
                 .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
                 .build();
-
         qrScanner = BarcodeScanning.getClient(options);
         camController = new LifecycleCameraController(requireContext());
         camController.setCameraSelector(new CameraSelector.Builder()
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK)
                 .build());
-
-        // Set analyzer with error handling in the lambda.
+        // Set the analyzer and integrate QrCsvParser for consistent QR parsing.
         camController.setImageAnalysisAnalyzer(ContextCompat.getMainExecutor(requireContext()),
                 getQrCodeAnalyzer(preview));
-
         camController.setTapToFocusEnabled(true);
         camController.setPinchToZoomEnabled(true);
-
         camController.bindToLifecycle(this);
         preview.setController(camController);
-
         refreshActionBar();
     }
 
     /**
-     * Returns an analyzer for QR codes with improved error handling and reduced code duplication.
+     * Returns an ML Kit analyzer for QR codes.
+     * Uses QrCsvParser to parse CSV data consistently.
      */
     protected MlKitAnalyzer getQrCodeAnalyzer(PreviewView preview) {
         return new MlKitAnalyzer(
@@ -239,50 +241,62 @@ public class Scanner extends Fragment {
                 ContextCompat.getMainExecutor(requireContext()),
                 result -> {
                     try {
+                        // Get detected barcodes.
                         List<Barcode> qrResList = result.getValue(qrScanner);
                         if (qrResList == null || qrResList.isEmpty() || qrResList.get(0) == null) {
                             preview.getOverlay().clear();
                             return;
                         }
-
                         Barcode qr = qrResList.get(0);
-                        String bar_string = qr.getRawValue();
+                        String rawData = qr.getRawValue();
                         preview.getOverlay().clear();
 
+                        // Draw an overlay for visual feedback.
                         QrCodeViewModel qrCodeViewModel = new QrCodeViewModel(qr);
                         QrCodeDrawable qrCodeDrawable = new QrCodeDrawable(qrCodeViewModel);
                         preview.getOverlay().add(qrCodeDrawable);
 
-                        if (bar_string == null) {
+                        if (rawData == null) {
                             Log.w(TAG, "QR code raw value is null");
                             return;
                         }
 
-                        // Process QR based on its prefix
-                        if (bar_string.startsWith("ScoutData")) {
-                            String[] scouterList = bar_string.split(",");
-                            debugPreference.setObject("scouter_list", scouterList);
-                        } else if (bar_string.startsWith("GoogleConfig")) {
-                            String[] parts = bar_string.split(",");
+                        // Use QrCsvParser to parse the raw CSV data.
+                        String[] parsedFields = QrCsvParser.parseCsv(rawData, 1);
+                        if (parsedFields == null || parsedFields.length == 0) {
+                            lastScannedData = null;
+                            lastScanError = "Invalid or malformed QR data.";
+                            return;
+                        }
+                        Log.d(TAG, "Parsed QR fields: " + Arrays.toString(parsedFields));
+
+                        // Process QR data based on known prefixes.
+                        if (rawData.startsWith("ScoutData")) {
+                            debugPreference.setObject("scouter_list", parsedFields);
+                        } else if (rawData.startsWith("GoogleConfig")) {
+                            String[] parts = rawData.split(",");
                             if (parts.length >= 5) {
-                                configPreference.setString("workbook_id", parts[1]);
-                                configPreference.setString("crowd_range", parts[2]);
-                                configPreference.setString("pit_range", parts[3]);
-                                configPreference.setString("specialty_range", parts[4]);
+                                configPreference.setString("workbook_id", parts[1].trim());
+                                configPreference.setString("crowd_range", parts[2].trim());
+                                configPreference.setString("pit_range", parts[3].trim());
+                                configPreference.setString("specialty_range", parts[4].trim());
                             } else {
-                                Log.e(TAG, "GoogleConfig data is incomplete");
+                                runOnUiThread(() -> showScanRetryDialog("Incomplete GoogleConfig data. Please scan again."));
+                                return;
                             }
-                        } else if (bar_string.startsWith("MatchData")) {
-                            List<String[]> matchData = splitMatchData(bar_string);
-                            String[][] originalMatchData = listPreference.getObject("team_match",
-                                    String[][].class, new String[0][0]);
-                            // Combine new match data with the existing data.
+                        } else if (rawData.startsWith("MatchData")) {
+                            List<String[]> matchData = splitMatchData(rawData);
+                            if (matchData.isEmpty()) {
+                                lastScannedData = null;
+                                lastScanError = "Incomplete MatchData. Please scan again.";
+                                return;
+                            }
+                            String[][] originalMatchData = listPreference.getObject("team_match", String[][].class, new String[0][0]);
                             String[][] combinedMatchData = new String[originalMatchData.length + matchData.size()][];
                             System.arraycopy(originalMatchData, 0, combinedMatchData, 0, originalMatchData.length);
                             System.arraycopy(matchData.toArray(new String[0][0]), 0, combinedMatchData,
                                     originalMatchData.length, matchData.size());
-
-                            // Normalize and sort by match number.
+                            // Normalize and sort match numbers.
                             for (String[] entry : combinedMatchData) {
                                 try {
                                     entry[0] = String.valueOf(Integer.parseInt(entry[0]));
@@ -292,9 +306,8 @@ public class Scanner extends Fragment {
                                 }
                             }
                             Arrays.sort(combinedMatchData, Comparator.comparingInt(a -> Integer.parseInt(a[0])));
-
-                            // Deduplicate identical lines
                             int newLength = combinedMatchData.length;
+                            // Deduplicate identical lines.
                             for (int i = 1; i < newLength; i++) {
                                 if (Arrays.equals(combinedMatchData[i], combinedMatchData[i - 1])) {
                                     System.arraycopy(combinedMatchData, i + 1, combinedMatchData, i, newLength - i - 1);
@@ -304,73 +317,81 @@ public class Scanner extends Fragment {
                             }
                             String[][] uniqueMatchData = new String[newLength][];
                             System.arraycopy(combinedMatchData, 0, uniqueMatchData, 0, newLength);
-
                             debugPreference.setInt("team_match_list_size", newLength);
                             listPreference.setObject("team_match", uniqueMatchData);
                             setupTeamDisplay(match);
-                        } else if (bar_string.startsWith("role")) {
-                            process_qr(bar_string);
+                        } else if (rawData.startsWith("role")) {
+                            process_qr(rawData);
                         } else {
-                            // Refactored team matching logic to eliminate duplicate conditions.
-                            boolean teamFound = false;
-                            // Mapping of team index to view id: indices 1-3 => blue, 4-6 => red.
-                            int[] teamViewIds = {R.id.blue1, R.id.blue2, R.id.blue3, R.id.red1, R.id.red2, R.id.red3};
-                            for (int i = 0; i < teamViewIds.length; i++) {
-                                String masterTeam = teamInfo.getMasterTeam(match, i + 1);
-                                if (bar_string.contains(masterTeam)) {
-                                    set_team(teamViewIds[i]);
-                                    teamFound = true;
-                                    break;
-                                }
-                            }
-                            // If no team-specific data and not a role QR, then simply save the data.
-                            if (!teamFound && !bar_string.startsWith("role")) {
-                                saveData(bar_string);
-                            } else if (teamFound) {
-                                saveData(bar_string);
-                            }
+                            // For any other generic QR data, simply save it.
+                            saveData(rawData);
                         }
+                        // Store the successfully parsed QR data.
+                        lastScannedData = rawData;
+                        lastScanError = null;
                     } catch (Exception e) {
-                        // Log any unexpected exception to prevent crashes.
                         Log.e(TAG, "Error processing QR code", e);
+                        lastScannedData = null;
+                        lastScanError = "An error occurred while processing the QR code. Please scan again.";
                     }
                 }
         );
     }
 
     /**
+     * Helper method to run actions on the UI thread.
+     */
+    private void runOnUiThread(Runnable action) {
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(action);
+        }
+    }
+
+    /**
+     * Displays an alert dialog when a scan error occurs.
+     */
+    private void showScanRetryDialog(String message) {
+        if (getActivity() == null) return;
+        new AlertDialog.Builder(getActivity())
+                .setTitle("Scan Error")
+                .setMessage(message)
+                .setPositiveButton("Retry", (dialog, which) -> dialog.dismiss())
+                .setCancelable(false)
+                .show();
+    }
+
+    /**
      * Parses the match data string into a list of string arrays.
+     * Splits the data into chunks and processes each entry.
      */
     public List<String[]> splitMatchData(String matchDataString) {
         List<String[]> result = new ArrayList<>();
-
         if (!matchDataString.startsWith("MatchData")) {
-            Log.e(TAG, "Invalid data format: String does not start with 'MatchData'");
+            Log.e(TAG, "Invalid data format: Does not start with 'MatchData'");
             return result;
         }
-
         String[] parts = matchDataString.split(",", 3);
         if (parts.length != 3) {
             Log.e(TAG, "Invalid data format: Incorrect number of commas");
             return result;
         }
-
         int chunkIndex;
         try {
             chunkIndex = Integer.parseInt(parts[1]);
         } catch (NumberFormatException e) {
-            Log.e(TAG, "Invalid data format: Chunk index is not a number", e);
+            Log.e(TAG, "Invalid data format: Chunk index not a number", e);
             return result;
         }
-        Set<Integer> processedChunks = listPreference.getObject("processedChunks", Set.class, new HashSet<>());
-        if (processedChunks.contains(chunkIndex)) {
+        // Prevent processing duplicate chunks.
+        Set<String> processedChunks = listPreference.getObject("processedChunks", Set.class, new HashSet<>());
+        if (processedChunks.contains(chunkIndex + "")) {
             Log.i(TAG, "Duplicate chunk detected: " + chunkIndex + ". Skipping.");
             return result;
         }
-
-        processedChunks.add(chunkIndex);
+        processedChunks.add(chunkIndex + "");
         listPreference.setObject("processedChunks", processedChunks);
 
+        // Split the match entries.
         String[] matchEntries = parts[2].split("(?<=])(?=\\[)");
         for (String entry : matchEntries) {
             String cleanedEntry = entry.replaceAll("[\\[\\]]", "");
@@ -384,39 +405,37 @@ public class Scanner extends Fragment {
     }
 
     /**
-     * Creates or appends to the upload CSV file. Uses try-with-resources for better resource handling.
+     * Creates or appends to the upload CSV file.
+     * This is used for debugging purposes.
      */
     private void makeUploadFile(String bar_string) {
         File file = new File(requireContext().getFilesDir(), "upload.csv");
-        // Using try-with-resources for proper resource management.
         try (FileWriter uploadFile = new FileWriter(file, true);
              CSVWriter uploader = new CSVWriter(uploadFile, CSVWriter.DEFAULT_SEPARATOR,
                      CSVWriter.NO_QUOTE_CHARACTER, CSVWriter.DEFAULT_ESCAPE_CHARACTER)) {
-
             List<String[]> upload_data = new ArrayList<>();
             String timeStamp = new SimpleDateFormat("MM-dd-yy hh:mmaaa", Locale.getDefault()).format(new Date());
-            upload_data.add(new String[] {bar_string + "," + timeStamp});
-
+            upload_data.add(new String[]{bar_string + "," + timeStamp});
             uploader.writeAll(upload_data);
             uploader.flush();
 
-            // Temporarily hide the back button and restore after 3 seconds.
+            // Temporarily hide the back button for visual feedback.
             binding.buttonBack.setVisibility(View.INVISIBLE);
             new Handler().postDelayed(() -> binding.buttonBack.setVisibility(View.VISIBLE), 3000);
         } catch (IOException e) {
-            // Log the error for debugging and stability.
             Log.e(TAG, "Error writing to upload file", e);
         }
     }
 
     /**
-     * Saves the scanned data into preferences while avoiding duplicates.
+     * Saves the scanned QR data into local preferences while avoiding duplicates.
+     * Uses different keys based on the current upload mode.
      */
     private void saveData(String bar_string) {
         String uploadData;
         String uploadLines;
 
-        // Determine keys based on upload mode.
+        // Determine the keys based on upload mode.
         switch (configPreference.getString("uploadMode", "Crowd")) {
             case "Specialty":
                 uploadData = "special_upload_data";
@@ -433,27 +452,28 @@ public class Scanner extends Fragment {
                 break;
         }
 
-        // Retrieve and update raw data list.
+        // Retrieve the current raw data list.
         List<String[]> raw_data = matchPreference.getObject(uploadData, ArrayList.class, new ArrayList<>());
         String[] split = bar_string.split(",");
         raw_data.add(split);
 
-        // Write to CSV file for debugging purposes.
+        // Write the scanned data to a CSV file for debugging.
         makeUploadFile(bar_string);
 
-        // Manage seen lines using a Set to prevent duplicates.
+        // Prevent duplicate entries using a Set.
         Set<String> seenLines = listPreference.getObject(uploadLines, Set.class, new HashSet<>());
         if (!seenLines.contains(bar_string) && !bar_string.contains("Role")) {
             seenLines.add(bar_string);
             listPreference.setObject(uploadLines, seenLines);
             matchPreference.setObject(uploadData, raw_data);
         } else {
-            Toast.makeText(requireContext(), "ALready Exists", Toast.LENGTH_SHORT);
+            // Show a Toast if duplicate data is detected.
+            Toast.makeText(requireContext(), "Already Exists", Toast.LENGTH_SHORT).show();
         }
     }
 
     /**
-     * Sets the background tint for the given team view.
+     * Sets the background tint for a given team view.
      */
     private void set_team(int id) {
         TextView text = requireView().findViewById(id);
@@ -461,7 +481,7 @@ public class Scanner extends Fragment {
     }
 
     /**
-     * Updates the team display with the corresponding team numbers.
+     * Updates the team display using the current match information.
      */
     private void setupTeamDisplay(int match) {
         int[] teamIds = new int[]{R.id.blue1, R.id.blue2, R.id.blue3, R.id.red1, R.id.red2, R.id.red3};
@@ -482,7 +502,6 @@ public class Scanner extends Fragment {
     private void process_qr(String raw_qr) {
         NavController controller = NavHostFragment.findNavController(Scanner.this);
         String[] qr_data = raw_qr.split(",");
-
         try {
             String role = qr_data[1];
             int crowd_num = Integer.parseInt(qr_data[3]);
@@ -493,7 +512,7 @@ public class Scanner extends Fragment {
             boolean special_selector = Boolean.parseBoolean(qr_data[13]);
 
             if (delete_data) {
-                // Clear all data if deletion is requested.
+                // Clear all data if requested.
                 PowerPreference.clearAllData();
             }
 
@@ -513,7 +532,7 @@ public class Scanner extends Fragment {
     public static void restartApp(Context context) {
         PackageManager packageManager = context.getPackageManager();
         Intent intent = packageManager.getLaunchIntentForPackage(context.getPackageName());
-        assert intent != null;  //so that null exception can be avoided
+        assert intent != null;
         ComponentName componentName = intent.getComponent();
         Intent mainIntent = Intent.makeRestartActivityTask(componentName);
         context.startActivity(mainIntent);
@@ -521,15 +540,15 @@ public class Scanner extends Fragment {
     }
 
     /**
-     * Starts the Sheets update task to upload data.
+     * Initiates the Sheets update process.
      */
-    protected void call_sheets() {
+    private void call_sheets() {
         SheetsUpdateTask taskRunner = new SheetsUpdateTask(requireActivity());
         taskRunner.execute();
     }
 
     /**
-     * Refreshes the action bar title and subtitle.
+     * Refreshes the action bar with a title and subtitle.
      */
     public void refreshActionBar() {
         AppCompatActivity activity = (AppCompatActivity) getActivity();
@@ -543,7 +562,7 @@ public class Scanner extends Fragment {
     }
 
     /**
-     * Refreshes the UI elements based on the device role.
+     * Refreshes UI elements based on the device role.
      */
     private void refreshUI() {
         if (!debugPreference.getBoolean("isMaster", false)) {
